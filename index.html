@@ -31,11 +31,8 @@
         const urlsToRotate = [
             { url: "https://www.leddepartureboard.com/singleboard/SRC/to/IMW?hideClock=false&hideMenu=true&showStationName=true", duration: 12000 }, // 12 seconds
             { url: "https://www.leddepartureboard.com/singleboard/STE/to/WIM?hideClock=false&hideMenu=true&showStationName=true", duration: 12000 }, // 12 seconds
-            // *** CORRECTED GOOGLE SLIDES URL ***
-            // - Uses your Apps Script's presentation ID: 1b1XjX31HzkSyiL0eTKrzurH1rMXP_zrNk0XwddruecY
-            // - Uses the /pubembed? format for better embedding reliability
-            // - start=true&loop=true as per your working example (Google Slides internal autoplay)
-            { url: "https://docs.google.com/presentation/d/e/1b1XjX31HzkSyiL0eTKrzurH1rMXP_zrNk0XwddruecY/pubembed?start=true&loop=true", duration: 9000 } // 9 seconds
+             // Google Slides URL updated: removed 'delayms' as internal slide changes are not needed, and set loop=false
+            { url: "https://docs.google.com/presentation/d/e/2PACX-1vStXNYqKKgtNPFgvCBi7L0rs0qcOym3N8rHJ2L1QCB1FybUViJCNIAQGccC1LtnWNis2J4PedajoB2O/pubembed?start=true&loop=true", duration: 9000 } // 9 seconds
         ];
 
         const initialDelay = 5000; // 5 seconds for the "current URL" (the page itself)
