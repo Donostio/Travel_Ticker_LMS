@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Rotating URL Display</title>
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; /* Ensures no scrollbars */
+            background-color: #000;
+        }
+        iframe {
+            border: none;
+            width: 100%;  /* Takes 100% of parent width */
+            height: 100%; /* Takes 100% of parent height */
+            display: block; /* Removes any extra spacing */
+        }
+    </style>
+</head>
+<body>
+    <iframe id="contentFrame" src="about:blank" 
+            allowfullscreen="true" 
+            mozallowfullscreen="true" 
+            webkitallowfullscreen="true">
+    </iframe>
+
+    <script>
+        // Array of URLs to rotate, now including custom durations and the CORRECT Google Slides URL
+        const urlsToRotate = [
+            { url: "https://www.leddepartureboard.com/singleboard/SRC/to/IMW?hideClock=false&hideMenu=true&showStationName=true", duration: 12000 }, // 12 seconds
+            { url: "https://www.leddepartureboard.com/singleboard/STE/to/WIM?hideClock=false&hideMenu=true&showStationName=true", duration: 12000 }, // 12 seconds
+            // *** CORRECTED GOOGLE SLIDES URL ***
+            // - Uses your Apps Script's presentation ID: 1b1XjX31HzkSyiL0eTKrzurH1rMXP_zrNk0XwddruecY
+            // - Uses the /pubembed? format for better embedding reliability
+            // - start=true&loop=true as per your working example (Google Slides internal autoplay)
+            { url: "https://docs.google.com/presentation/d/e/1b1XjX31HzkSyiL0eTKrzurH1rMXP_zrNk0XwddruecY/pubembed?start=true&loop=true", duration: 9000 } // 9 seconds
+        ];
+
+        const initialDelay = 5000; // 5 seconds for the "current URL" (the page itself)
+
+        let currentUrlIndex = 0;
+        const contentFrame = document.getElementById('contentFrame');
+        let rotationTimer; // Variable to hold the timeout ID
+
+        // Function to start or continue the rotation
+        function startRotation() {
+            // Get the current item (URL and its duration) from the array
+            const currentItem = urlsToRotate[currentUrlIndex];
+
+            // Load the URL into the iframe
+            contentFrame.src = currentItem.url;
+            console.log("Loading URL: " + currentItem.url + " for " + currentItem.duration / 1000 + " seconds.");
+
+            // Move to the next URL for the next cycle, looping back to the start if at the end
+            currentUrlIndex = (currentUrlIndex + 1) % urlsToRotate.length;
+
+            // Schedule the next rotation based on the duration of the URL just loaded
+            rotationTimer = setTimeout(startRotation, currentItem.duration);
+        }
+
+        // Initial delay before the first URL from the list is loaded
+        // This makes the "current URL" (this HTML page itself) display for 5 seconds
+        setTimeout(() => {
+            startRotation(); // Begin the rotation cycle after the initial delay
+        }, initialDelay);
+    </script>
+</body>
+</html>
