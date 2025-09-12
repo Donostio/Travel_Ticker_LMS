@@ -15,7 +15,7 @@
             border: none;
             width: 100%;  /* Takes 100% of parent width */
             height: 100%; /* Takes 100% of parent height */
-            display: block; /* Removes any extra spacing */
+            display: none; /* The frame is now hidden by default */
         }
     </style>
 </head>
@@ -44,10 +44,8 @@
 
         // Function to start or continue the rotation
         function startRotation() {
-            // Clear any existing timer to prevent overlapping rotations if called multiple times
-            if (rotationTimer) {
-                clearTimeout(rotationTimer);
-            }
+            // Hide the iframe before loading the next page to prevent the "loading" view
+            contentFrame.style.display = 'none';
 
             // Get the current item (URL and its duration) from the array
             const currentItem = urlsToRotate[currentUrlIndex];
@@ -56,12 +54,31 @@
             contentFrame.src = currentItem.url;
             console.log("Loading URL: " + currentItem.url + " for " + currentItem.duration / 1000 + " seconds.");
 
-            // Move to the next URL for the next cycle, looping back to the start if at the end
-            currentUrlIndex = (currentUrlIndex + 1) % urlsToRotate.length;
-
-            // Schedule the next rotation based on the duration of the URL just loaded
-            rotationTimer = setTimeout(startRotation, currentItem.duration);
+            // We will now wait for the "page-ready" message from the iframe before showing it and starting the next timer.
         }
+        
+        // Listen for messages from the iframed pages
+        window.addEventListener('message', (event) => {
+            // Check if the message is the "page-ready" signal
+            if (event.data && event.data.type === 'page-ready') {
+                // If it is, show the iframe now that its content has loaded
+                contentFrame.style.display = 'block';
+
+                // Clear any existing timer to prevent overlapping rotations
+                if (rotationTimer) {
+                    clearTimeout(rotationTimer);
+                }
+
+                // Get the current item to use its duration
+                const currentItem = urlsToRotate[currentUrlIndex];
+
+                // Move to the next URL for the next cycle, looping back to the start if at the end
+                currentUrlIndex = (currentUrlIndex + 1) % urlsToRotate.length;
+
+                // Schedule the next rotation based on the duration of the URL that was just loaded
+                rotationTimer = setTimeout(startRotation, currentItem.duration);
+            }
+        });
 
         // Initial delay before the first URL from the list is loaded
         // This allows the page itself to display briefly before content loads.
@@ -71,3 +88,4 @@
     </script>
 </body>
 </html>
+
