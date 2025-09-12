@@ -27,13 +27,12 @@
     </iframe>
 
     <script>
-        // Array of URLs to rotate, now including custom durations and the CORRECT Google Slides URL
+        // Array of URLs to rotate, now including custom durations
         const urlsToRotate = [
             { url: "https://www.leddepartureboard.com/singleboard/SRC/to/IMW?hideClock=false&hideMenu=true&showStationName=true", duration: 11000 }, // 11 seconds
             { url: "https://donostio.github.io/EvieForcast/", duration: 10000 }, // 10 seconds
             { url: "https://donostio.github.io/DL-W-PG-status/", duration: 12000 }, // 12 seconds
-            // - Parameters: start=true&loop=true (Google Slides internal autoplay)
-            { url: "https://www.leddepartureboard.com/singleboard/STE/to/WIM?hideClock=false&hideMenu=true&showStationName=true", duration: 11000 } // 8 seconds
+            { url: "https://www.leddepartureboard.com/singleboard/STE/to/WIM?hideClock=false&hideMenu=true&showStationName=true", duration: 11000 } // 11 seconds
         ];
 
         const initialDelay = 2000; // 2 seconds before the first URL from the list is loaded
@@ -56,11 +55,24 @@
             contentFrame.src = currentItem.url;
             console.log("Loading URL: " + currentItem.url + " for " + currentItem.duration / 1000 + " seconds.");
             
-            // Set the fallback timeout to move on if the "page-ready" signal isn't received
-            loadTimeout = setTimeout(() => {
-                console.warn(`Timeout for ${currentItem.url}. Forcing next rotation.`);
-                handlePageReady();
-            }, fallbackTimeout);
+            // Check if the current URL is one of the live departure boards
+            if (currentItem.url.includes('leddepartureboard.com')) {
+                // For live departure boards, assume they don't send a ready signal and show them immediately
+                contentFrame.style.display = 'block';
+                console.log("Live board detected. Displaying immediately.");
+                
+                // Move to the next URL for the next cycle, looping back to the start if at the end
+                currentUrlIndex = (currentUrlIndex + 1) % urlsToRotate.length;
+
+                // Schedule the next rotation based on the duration of the URL that was just loaded
+                rotationTimer = setTimeout(startRotation, currentItem.duration);
+            } else {
+                // For other URLs, use the existing logic of waiting for a "page-ready" signal or a fallback timeout
+                loadTimeout = setTimeout(() => {
+                    console.warn(`Timeout for ${currentItem.url}. Forcing next rotation.`);
+                    handlePageReady();
+                }, fallbackTimeout);
+            }
         }
         
         // This function is called when a page is ready or the timeout is reached
@@ -101,3 +113,4 @@
     </script>
 </body>
 </html>
+
