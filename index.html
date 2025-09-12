@@ -37,10 +37,12 @@
         ];
 
         const initialDelay = 2000; // 2 seconds before the first URL from the list is loaded
+        const fallbackTimeout = 7000; // 7-second fallback timeout for pages that don't signal ready
 
         let currentUrlIndex = 0;
         const contentFrame = document.getElementById('contentFrame');
-        let rotationTimer; // Variable to hold the timeout ID
+        let rotationTimer; // Variable to hold the main rotation timeout ID
+        let loadTimeout; // Variable to hold the fallback loading timeout ID
 
         // Function to start or continue the rotation
         function startRotation() {
@@ -53,39 +55,49 @@
             // Load the URL into the iframe
             contentFrame.src = currentItem.url;
             console.log("Loading URL: " + currentItem.url + " for " + currentItem.duration / 1000 + " seconds.");
-
-            // We will now wait for the "page-ready" message from the iframe before showing it and starting the next timer.
+            
+            // Set the fallback timeout to move on if the "page-ready" signal isn't received
+            loadTimeout = setTimeout(() => {
+                console.warn(`Timeout for ${currentItem.url}. Forcing next rotation.`);
+                handlePageReady();
+            }, fallbackTimeout);
         }
         
+        // This function is called when a page is ready or the timeout is reached
+        function handlePageReady() {
+            // Clear the fallback timeout to prevent it from firing after the page is ready
+            clearTimeout(loadTimeout);
+
+            // Show the iframe now that its content has loaded (or the timeout was reached)
+            contentFrame.style.display = 'block';
+
+            // Clear any existing rotation timer to prevent overlapping rotations
+            if (rotationTimer) {
+                clearTimeout(rotationTimer);
+            }
+
+            // Get the current item to use its duration
+            const currentItem = urlsToRotate[currentUrlIndex];
+
+            // Move to the next URL for the next cycle, looping back to the start if at the end
+            currentUrlIndex = (currentUrlIndex + 1) % urlsToRotate.length;
+
+            // Schedule the next rotation based on the duration of the URL that was just loaded
+            rotationTimer = setTimeout(startRotation, currentItem.duration);
+        }
+
         // Listen for messages from the iframed pages
         window.addEventListener('message', (event) => {
             // Check if the message is the "page-ready" signal
             if (event.data && event.data.type === 'page-ready') {
-                // If it is, show the iframe now that its content has loaded
-                contentFrame.style.display = 'block';
-
-                // Clear any existing timer to prevent overlapping rotations
-                if (rotationTimer) {
-                    clearTimeout(rotationTimer);
-                }
-
-                // Get the current item to use its duration
-                const currentItem = urlsToRotate[currentUrlIndex];
-
-                // Move to the next URL for the next cycle, looping back to the start if at the end
-                currentUrlIndex = (currentUrlIndex + 1) % urlsToRotate.length;
-
-                // Schedule the next rotation based on the duration of the URL that was just loaded
-                rotationTimer = setTimeout(startRotation, currentItem.duration);
+                handlePageReady();
             }
         });
 
         // Initial delay before the first URL from the list is loaded
-        // This allows the page itself to display briefly before content loads.
         setTimeout(() => {
             startRotation(); // Begin the rotation cycle after the initial delay
         }, initialDelay);
     </script>
 </body>
 </html>
-
